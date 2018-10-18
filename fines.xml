@@ -1,0 +1,61 @@
+<policies>
+    <inbound>
+        <base />
+        <!-- Get the endpoint -->
+        <cache-lookup-value key="@(context.Request.MatchedParameters["appId"] + "-endpoint")" variable-name="cachedEndpoint" />
+        <!-- 
+            Check to see if the endpoint is in cache
+        -->
+        <choose>
+            <when condition="@(!context.Variables.ContainsKey("cachedEndpoint"))">
+                <send-request mode="new" response-variable-name="endpoint">
+                    <set-url>@("{{aasp-endpoints}}" + context.Request.MatchedParameters["appId"])</set-url>
+                    <set-method>GET</set-method>
+                    <set-header name="Authorization" exists-action="override">
+                        <value>@{
+                            return context.Request.Headers.GetValueOrDefault("Authorization");
+                        }</value>
+                    </set-header>
+                </send-request>
+                <set-variable name="cachedEndpoint" value="@(((IResponse)context.Variables["endpoint"]).Body.As<string>())" />
+                <cache-store-value key="@(context.Request.MatchedParameters["appId"] + "-endpoint")" value="@((string)context.Variables["cachedEndpoint"])" duration="5" />
+            </when>
+        </choose>
+        <!--
+        <return-response>
+            <set-status code="200" reason="OK" />
+            <set-body>@((string)context.Variables["cachedEndpoint"])</set-body>
+        </return-response>
+        -->
+        <!--
+            Retrieve the fines
+        -->
+        <send-request mode="new" response-variable-name="fines">
+            <set-url>@("{{destiny-fines}}" + context.Request.MatchedParameters["appId"] + "/Fines")</set-url>
+            <set-method>GET</set-method>
+            <set-header name="Authorization" exists-action="override">
+                <value>@{
+                    return context.Request.Headers.GetValueOrDefault("AaspToken");
+                }</value>
+            </set-header>
+        </send-request>
+        <!--
+            Return the fines
+        -->
+        <return-response>
+            <set-status code="200" reason="OK" />
+            <set-body>@{
+                return((IResponse)context.Variables["fines"]).Body.As<string>().ToString();
+            }</set-body>
+        </return-response>
+    </inbound>
+    <backend>
+        <base />
+    </backend>
+    <outbound>
+        <base />
+    </outbound>
+    <on-error>
+        <base />
+    </on-error>
+</policies>

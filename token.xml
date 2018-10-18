@@ -1,0 +1,54 @@
+<policies>
+    <inbound>
+        <base />
+        <!-- Call the AASP Auth API -->
+        <send-request mode="new" response-variable-name="aaspJwt">
+            <set-url>{{aasp-auth}}</set-url>
+            <set-method>POST</set-method>
+            <set-body>@{
+
+                // Parse the request body 
+                var requestBody = context.Request.Body.As<string>();
+                JObject json = JObject.Parse(requestBody);
+                var clientId = json["ClientId"];     
+                var clientSecret = json["ClientSecret"];                                        
+
+                var authRequestBody = new JObject();
+                authRequestBody.Add("ClientId", clientId);
+                authRequestBody.Add("ClientSecret", clientSecret);
+
+                return authRequestBody.ToString(Newtonsoft.Json.Formatting.None); 
+
+            }</set-body>
+        </send-request>
+        <!-- Call the AASP Token API -->
+        <send-request mode="new" response-variable-name="aaspToken">
+            <set-url>@("{{aasp-token}}" + context.Request.MatchedParameters["appId"] + "/token")</set-url>
+            <set-method>GET</set-method>
+            <set-header name="Authorization" exists-action="override">
+                <value>@{
+                    return ((IResponse)context.Variables["aaspJwt"]).Body.As<string>(preserveContent: true).ToString();
+                }</value>
+            </set-header>
+        </send-request>
+        <!-- Return the response -->
+        <return-response>
+            <set-status code="200" reason="OK" />
+            <set-body>@{
+                var json = new JObject();
+                json["token"] = ((IResponse)context.Variables["aaspToken"]).Body.As<string>(preserveContent: true).ToString();
+                json["jwt"] = ((IResponse)context.Variables["aaspJwt"]).Body.As<string>(preserveContent: true).ToString();
+                return json.ToString();
+            }</set-body>
+        </return-response>
+    </inbound>
+    <backend>
+        <base />
+    </backend>
+    <outbound>
+        <base />
+    </outbound>
+    <on-error>
+        <base />
+    </on-error>
+</policies>
