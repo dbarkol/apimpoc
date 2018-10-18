@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace funcapp.Aasp
@@ -15,13 +17,29 @@ namespace funcapp.Aasp
         {
             log.LogInformation("Aasp.Auth function processed a request.");
 
-            string clientId = req.Form["ClientId"];
-            string clientSecret = req.Form["ClientSecret"];
+            ClientCredentialFlowInfo clientCredentialFlowInfo = new ClientCredentialFlowInfo();
 
-            if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(clientSecret))
+            if (req.HasFormContentType)
+            {
+                clientCredentialFlowInfo.ClientId = req.Form["ClientId"];
+                clientCredentialFlowInfo.ClientSecret = req.Form["ClientSecret"];
+            }
+            else
+            {
+                string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+                clientCredentialFlowInfo = JsonConvert.DeserializeObject<ClientCredentialFlowInfo>(requestBody);
+            }
+
+            if (string.IsNullOrEmpty(clientCredentialFlowInfo.ClientId) || string.IsNullOrEmpty(clientCredentialFlowInfo.ClientSecret))
                 return new BadRequestObjectResult("ClientId and ClientSecret must be provided in the body of the message.");
 
             return new OkObjectResult(TokenHelpers.GenerateToken(Constants.AaspAudience, Constants.Issuer, TimeSpan.FromMinutes(5)));
+        }
+
+        public class ClientCredentialFlowInfo
+        {
+            public string ClientId { get; set; }
+            public string ClientSecret { get; set; }
         }
     }
 }
