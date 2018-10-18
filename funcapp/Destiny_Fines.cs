@@ -15,6 +15,10 @@ namespace funcapp.Aasp
         [FunctionName("Fines")]
         public static IActionResult Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "aasp/Fines")]HttpRequest req, TraceWriter log)
         {
+			var token = req.Headers["token"];
+
+			//validate token here
+
 			var list = GetMockFines();
 			return new OkObjectResult(list);
         }
@@ -34,8 +38,8 @@ namespace funcapp.Aasp
 				new Fine
 				{
 					FirstName = "Lynn",
-					Amount = 1000,
-					DateDue = DateTime.Now.AddDays(3),
+					Amount = 18583.98,
+					DateDue = DateTime.Now.AddDays(-1),
 					DateIssued = DateTime.Now
 				},
 
