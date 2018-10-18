@@ -11,7 +11,7 @@ namespace funcapp.Aasp
     public static class Auth
     {
         [FunctionName("Auth")]
-        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "post", Route = "Aasp/Auth")]HttpRequest req, ILogger log)
+        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "Aasp/Auth")]HttpRequest req, ILogger log)
         {
             log.LogInformation("Aasp.Auth function processed a request.");
 

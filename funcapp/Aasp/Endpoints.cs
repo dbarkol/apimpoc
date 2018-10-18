@@ -18,7 +18,7 @@ namespace funcapp.Aasp
         };
 
         [FunctionName("Endpoints")]
-        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = "Aasp/Endpoints/{appId}")]HttpRequest req, ILogger log, string appId)
+        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "Aasp/Endpoints/{appId}")]HttpRequest req, ILogger log, string appId)
         {
             log.LogInformation("Aasp.Endpoints function processed a request.");
 

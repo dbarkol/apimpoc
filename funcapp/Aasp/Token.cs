@@ -11,7 +11,7 @@ namespace funcapp.Aasp
     public static class Token
     {
         [FunctionName("Token")]
-        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = "Aasp/{AppId}/Token")]HttpRequest req, ILogger log, string appId)
+        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "Aasp/{AppId}/Token")]HttpRequest req, ILogger log, string appId)
         {
             log.LogInformation("Aasp.Token function processed a request.");
 
